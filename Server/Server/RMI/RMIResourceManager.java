@@ -47,6 +47,8 @@ public class RMIResourceManager extends ResourceManager
 			final Registry registry = l_registry;
 			registry.rebind(s_rmiPrefix + s_serverName, resourceManager);
 
+
+
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				public void run() {
 					try {

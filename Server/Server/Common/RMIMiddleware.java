@@ -9,8 +9,9 @@ import java.rmi.registry.Registry;
 import java.rmi.RemoteException;
 import java.rmi.NotBoundException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Vector;
 
-public class RMIMiddleware implements Remote {
+public class RMIMiddleware implements IResourceManager {
 
     private static String s_rmiPrefix = "group_23_";
 
@@ -88,4 +89,110 @@ public class RMIMiddleware implements Remote {
 
     }
 
+    @Override
+    public boolean addFlight(int flightNum, int flightSeats, int flightPrice) throws RemoteException {
+        return this.flight.addFlight(flightNum, flightSeats, flightPrice);
+    }
+
+    @Override
+    public boolean addCars(String location, int numCars, int price) throws RemoteException {
+        return this.car.addCars(location, numCars, price);
+    }
+
+    @Override
+    public boolean addRooms(String location, int numRooms, int price) throws RemoteException {
+        return this.room.addRooms(location, numRooms, price);
+    }
+
+    @Override
+    public int newCustomer() throws RemoteException {
+        return 0;
+    }
+
+    @Override
+    public boolean newCustomer(int cid) throws RemoteException {
+        return false;
+    }
+
+    @Override
+    public boolean deleteFlight(int flightNum) throws RemoteException {
+        return this.flight.deleteFlight(flightNum);
+    }
+
+    @Override
+    public boolean deleteCars(String location) throws RemoteException {
+        return this.car.deleteCars(location);
+    }
+
+    @Override
+    public boolean deleteRooms(String location) throws RemoteException {
+        return this.room.deleteRooms(location);
+    }
+
+    @Override
+    public boolean deleteCustomer(int customerID) throws RemoteException {
+        return this.flight.deleteCustomer(customerID) &&
+                this.car.deleteCustomer(customerID) &&
+                this.room.deleteCustomer(customerID);
+    }
+
+    @Override
+    public int queryFlight(int flightNumber) throws RemoteException {
+        return this.flight.queryFlight(flightNumber);
+    }
+
+    @Override
+    public int queryCars(String location) throws RemoteException {
+        return this.car.queryCars(location);
+    }
+
+    @Override
+    public int queryRooms(String location) throws RemoteException {
+        return this.room.queryRooms(location);
+    }
+
+    @Override
+    public String queryCustomerInfo(int customerID) throws RemoteException {
+        return null;
+    }
+
+    @Override
+    public int queryFlightPrice(int flightNumber) throws RemoteException {
+        return this.flight.queryFlightPrice(flightNumber);
+    }
+
+    @Override
+    public int queryCarsPrice(String location) throws RemoteException {
+        return this.car.queryCarsPrice(location);
+    }
+
+    @Override
+    public int queryRoomsPrice(String location) throws RemoteException {
+        return this.room.queryRoomsPrice(location);
+    }
+
+    @Override
+    public boolean reserveFlight(int customerID, int flightNumber) throws RemoteException {
+        return this.flight.reserveFlight(customerID, flightNumber);
+    }
+
+    @Override
+    public boolean reserveCar(int customerID, String location) throws RemoteException {
+        return this.car.reserveCar(customerID, location);
+    }
+
+    @Override
+    public boolean reserveRoom(int customerID, String location) throws RemoteException {
+        return this.room.reserveRoom(customerID, location);
+    }
+
+    @Override
+    public boolean bundle(int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException {
+        return false;
+    }
+
+    @Override
+    public String getName() throws RemoteException {
+        return null;
+    }
 }
