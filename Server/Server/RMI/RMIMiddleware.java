@@ -1,13 +1,10 @@
-package Server.Common;
+package Server.RMI;
 
 import Server.Interface.IResourceManager;
-import Server.RMI.RMIResourceManager;
 
-import java.rmi.Remote;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.RemoteException;
-import java.rmi.NotBoundException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
@@ -15,9 +12,9 @@ public class RMIMiddleware implements IResourceManager {
 
     private static String s_rmiPrefix = "group_23_";
 
-    private static int port = 2324;
+    private static String middleware_name = "middleware";
 
-    Registry flight_registry;
+    private static int port = 2324;
 
     IResourceManager flight;
 
@@ -25,34 +22,31 @@ public class RMIMiddleware implements IResourceManager {
 
     IResourceManager car;
 
-    private static String middleware_name;
 
-    public RMIMiddleware(String name) {
-        middleware_name = name;
+    public RMIMiddleware(String host1, String host2, String host3) {
         try {
-            Registry registry = LocateRegistry.getRegistry("tr-open-20", 2324);
-            flight = (IResourceManager) registry.lookup(s_rmiPrefix + "flight_rm" + port);
-            registry = LocateRegistry.getRegistry("tr-open-21", 2324);
-            room = (IResourceManager) registry.lookup(s_rmiPrefix + "room_rm" + port);
-            registry = LocateRegistry.getRegistry("tr-open-22", 2324);
-            car = (IResourceManager) registry.lookup(s_rmiPrefix + "car_rm" + port);
+            Registry registry = LocateRegistry.getRegistry(host1, 2324);
+            flight = (IResourceManager) registry.lookup(s_rmiPrefix + "Flights" );
+            registry = LocateRegistry.getRegistry(host2, 2324);
+            room = (IResourceManager) registry.lookup(s_rmiPrefix + "Rooms" );
+            registry = LocateRegistry.getRegistry(host3, 2324);
+            car = (IResourceManager) registry.lookup(s_rmiPrefix + "Cars" );
         } catch (Exception e) {
-            System.out.print("error!");
+            System.out.print("Error connecting to registries.");
         }
     }
 
 
     public static void main(String args[])
     {
-        if (args.length > 0)
-        {
-            middleware_name = args[0];
+        if (args.length != 3) {
+            System.out.print("Wrong number of arguments.");
+            System.exit(1);
         }
-
         // Create the RMI server entry
         try {
             // Create a new Server object
-            RMIMiddleware server = new RMIMiddleware(middleware_name);
+            RMIMiddleware server = new RMIMiddleware(args[0], args[1], args[2]);
 
             // Dynamically generate the stub (client proxy)
             IResourceManager middleware_proxy = (IResourceManager) UnicastRemoteObject.exportObject(server, 0);
@@ -79,7 +73,7 @@ public class RMIMiddleware implements IResourceManager {
                     }
                 }
             });
-            System.out.println("'" + middleware_name + "' resource manager server ready and bound to '" + s_rmiPrefix + middleware_name + "'");
+            System.out.println("'" + middleware_name + "' ready and bound to '" + s_rmiPrefix + middleware_name + "'");
         }
         catch (Exception e) {
             System.err.println((char)27 + "[31;1mServer exception: " + (char)27 + "[0mUncaught exception");
@@ -106,12 +100,17 @@ public class RMIMiddleware implements IResourceManager {
 
     @Override
     public int newCustomer() throws RemoteException {
-        return 0;
+        int cid = this.flight.newCustomer();
+        this.car.newCustomer(cid);
+        this.room.newCustomer(cid);
+        return cid;
     }
 
     @Override
     public boolean newCustomer(int cid) throws RemoteException {
-        return false;
+        return this.flight.newCustomer(cid) &&
+                this.car.newCustomer(cid) &&
+                this.room.newCustomer(cid);
     }
 
     @Override
@@ -153,7 +152,7 @@ public class RMIMiddleware implements IResourceManager {
 
     @Override
     public String queryCustomerInfo(int customerID) throws RemoteException {
-        return null;
+        return this.car.queryCustomerInfo(customerID)+this.room.queryCustomerInfo(customerID)+this.flight.queryCustomerInfo(customerID);
     }
 
     @Override
@@ -188,7 +187,9 @@ public class RMIMiddleware implements IResourceManager {
 
     @Override
     public boolean bundle(int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException {
-        return false;
+        return this.room.bundle(customerID, new Vector<String>(), location, false, room) &&
+                this.car.bundle(customerID, new Vector<String>(), location, car, false) &&
+                this.flight.bundle(customerID, flightNumbers, location, false, false);
     }
 
     @Override
