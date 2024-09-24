@@ -77,26 +77,73 @@ public class TCPResourceManager extends ResourceManager {
                         case DeleteCustomer -> {
                         }
                         case QueryFlight -> {
+                            int flightNum = Integer.parseInt(cmd_args.remove(0));
+                            String numSeatsAvail = String.valueOf(queryFlight(flightNum));
+
+                            outToClient.println(numSeatsAvail);
                         }
                         case QueryCars -> {
+                            String location = cmd_args.remove(0);
+                            String numCarsAvail = String.valueOf(queryCars(location));
+
+                            outToClient.println(numCarsAvail);
                         }
                         case QueryRooms -> {
+                            String location = cmd_args.remove(0);
+                            String numRoomsAvail = String.valueOf(queryRooms(location));
+
+                            outToClient.println(numRoomsAvail);
                         }
                         case QueryCustomer -> {
+                            int customerID =  Integer.parseInt(cmd_args.remove(0));
+                            String bill = String.valueOf(queryCustomerInfo(customerID));
+
+                            outToClient.println(bill);
                         }
                         case QueryFlightPrice -> {
+                            int flightNum =  Integer.parseInt(cmd_args.remove(0));
+                            String price = String.valueOf(queryFlightPrice(flightNum));
+
+                            outToClient.println(price);
                         }
                         case QueryCarsPrice -> {
+                            String location = cmd_args.remove(0);
+                            String price = String.valueOf(queryCarsPrice(location));
+
+                            outToClient.println(price);
                         }
                         case QueryRoomsPrice -> {
+                            String location = cmd_args.remove(0);
+                            String price = String.valueOf(queryRoomsPrice(location));
+
+                            outToClient.println(price);
                         }
                         case ReserveFlight -> {
+                            int customerID = Integer.parseInt(cmd_args.remove(0));
+                            int flightNum =  Integer.parseInt(cmd_args.remove(0));
+
+                            String success = String.valueOf(reserveFlight(customerID,flightNum));
+
+                            outToClient.println(success);
                         }
                         case ReserveCar -> {
+                            int customerID = Integer.parseInt(cmd_args.remove(0));
+                            String location = cmd_args.remove(0);
+
+                            String success = String.valueOf(reserveCar(customerID,location));
+
+                            outToClient.println(success);
                         }
                         case ReserveRoom -> {
+                            int customerID = Integer.parseInt(cmd_args.remove(0));
+                            String location = cmd_args.remove(0);
+
+                            String success = String.valueOf(reserveRoom(customerID,location));
+
+                            outToClient.println(success);
                         }
                         case Bundle -> {
+
                         }
                         case Quit -> {
 
