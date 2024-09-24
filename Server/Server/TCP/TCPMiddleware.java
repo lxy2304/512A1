@@ -86,12 +86,15 @@ public class TCPMiddleware {
         switch (cmd) {
             case Help, DeleteFlight, QueryFlight, AddFlight, QueryFlightPrice, ReserveFlight -> {
                 execute_redirection(this.flight_output_stream, this.flight_input_stream, outToClient, cmd_args);
+                break;
             }
             case AddCars, DeleteCars, QueryCars, QueryCarsPrice, ReserveCar -> {
                 execute_redirection(this.car_output_stream, this.car_input_stream, outToClient, cmd_args);
+                break;
             }
             case AddRooms, DeleteRooms, QueryRooms, QueryRoomsPrice, ReserveRoom -> {
                 execute_redirection(this.room_output_stream, this.room_input_stream, outToClient, cmd_args);
+                break;
             }
             case AddCustomer -> {
                 int cid = Integer.parseInt(String.valueOf(Calendar.getInstance().get(Calendar.MILLISECOND)) +
@@ -103,6 +106,7 @@ public class TCPMiddleware {
                 room_output_stream.writeObject(cmd_args);
                 room_input_stream.read();
                 execute_redirection(this.car_output_stream, this.car_input_stream, outToClient, cmd_args);
+                break;
             }
             case AddCustomerID, DeleteCustomer -> {
                 flight_output_stream.writeObject(cmd_args);
@@ -110,6 +114,7 @@ public class TCPMiddleware {
                 room_output_stream.writeObject(cmd_args);
                 room_input_stream.read();
                 execute_redirection(this.car_output_stream, this.car_input_stream, outToClient, cmd_args);
+                break;
             }
             case QueryCustomer -> {
                 String res = "";
@@ -120,6 +125,7 @@ public class TCPMiddleware {
                 car_output_stream.writeObject(cmd_args);
                 res += car_input_stream.readLine();
                 outToClient.println(res);
+                break;
             }
             case Bundle -> {
                 Vector<String> c1 = new Vector<>(cmd_args);
@@ -151,8 +157,10 @@ public class TCPMiddleware {
                 }
 
                 outToClient.println(res);
+                break;
             }
             case Quit -> {
+                break;
             }
         }
     }

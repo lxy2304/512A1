@@ -71,6 +71,7 @@ public class TCPClient extends Client{
 
         try {
             String res = input_stream.readLine(); // receive the server's result via the input stream from the server
+            System.out.println(res);
         } catch (IOException e) {
             System.out.println("Faield to receive response from server.");
         }
