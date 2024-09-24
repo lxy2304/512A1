@@ -84,16 +84,13 @@ public class TCPMiddleware {
     public void execute(Vector<String> cmd_args, PrintWriter outToClient) throws IOException {
         Command cmd = Command.fromString(cmd_args.get(0));
         switch (cmd) {
-            case Help -> {
+            case Help, DeleteFlight, QueryFlight, AddFlight, QueryFlightPrice, ReserveFlight -> {
                 execute_redirection(this.flight_output_stream, this.flight_input_stream, outToClient, cmd_args);
             }
-            case AddFlight -> {
-                execute_redirection(this.flight_output_stream, this.flight_input_stream, outToClient, cmd_args);
-            }
-            case AddCars -> {
+            case AddCars, DeleteCars, QueryCars, QueryCarsPrice, ReserveCar -> {
                 execute_redirection(this.car_output_stream, this.car_input_stream, outToClient, cmd_args);
             }
-            case AddRooms -> {
+            case AddRooms, DeleteRooms, QueryRooms, QueryRoomsPrice, ReserveRoom -> {
                 execute_redirection(this.room_output_stream, this.room_input_stream, outToClient, cmd_args);
             }
             case AddCustomer -> {
@@ -107,37 +104,12 @@ public class TCPMiddleware {
                 room_input_stream.read();
                 execute_redirection(this.car_output_stream, this.car_input_stream, outToClient, cmd_args);
             }
-            case AddCustomerID -> {
+            case AddCustomerID, DeleteCustomer -> {
                 flight_output_stream.writeObject(cmd_args);
                 flight_input_stream.read();
                 room_output_stream.writeObject(cmd_args);
                 room_input_stream.read();
                 execute_redirection(this.car_output_stream, this.car_input_stream, outToClient, cmd_args);
-            }
-            case DeleteFlight -> {
-                execute_redirection(this.flight_output_stream, this.flight_input_stream, outToClient, cmd_args);
-            }
-            case DeleteCars -> {
-                execute_redirection(this.car_output_stream, this.car_input_stream, outToClient, cmd_args);
-            }
-            case DeleteRooms -> {
-                execute_redirection(this.room_output_stream, this.room_input_stream, outToClient, cmd_args);
-            }
-            case DeleteCustomer -> {
-                flight_output_stream.writeObject(cmd_args);
-                flight_input_stream.read();
-                room_output_stream.writeObject(cmd_args);
-                room_input_stream.read();
-                execute_redirection(this.car_output_stream, this.car_input_stream, outToClient, cmd_args);
-            }
-            case QueryFlight -> {
-                execute_redirection(this.flight_output_stream, this.flight_input_stream, outToClient, cmd_args);
-            }
-            case QueryCars -> {
-                execute_redirection(this.car_output_stream, this.car_input_stream, outToClient, cmd_args);
-            }
-            case QueryRooms -> {
-                execute_redirection(this.room_output_stream, this.room_input_stream, outToClient, cmd_args);
             }
             case QueryCustomer -> {
                 String res = "";
@@ -148,24 +120,6 @@ public class TCPMiddleware {
                 car_output_stream.writeObject(cmd_args);
                 res += car_input_stream.readLine();
                 outToClient.println(res);
-            }
-            case QueryFlightPrice -> {
-                execute_redirection(this.flight_output_stream, this.flight_input_stream, outToClient, cmd_args);
-            }
-            case QueryCarsPrice -> {
-                execute_redirection(this.car_output_stream, this.car_input_stream, outToClient, cmd_args);
-            }
-            case QueryRoomsPrice -> {
-                execute_redirection(this.room_output_stream, this.room_input_stream, outToClient, cmd_args);
-            }
-            case ReserveFlight -> {
-                execute_redirection(this.flight_output_stream, this.flight_input_stream, outToClient, cmd_args);
-            }
-            case ReserveCar -> {
-                execute_redirection(this.car_output_stream, this.car_input_stream, outToClient, cmd_args);
-            }
-            case ReserveRoom -> {
-                execute_redirection(this.room_output_stream, this.room_input_stream, outToClient, cmd_args);
             }
             case Bundle -> {
                 Vector<String> c1 = new Vector<>(cmd_args);
