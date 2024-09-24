@@ -16,7 +16,7 @@ public class TCPResourceManager extends ResourceManager {
     }
 
     public static void main(String[] args) {
-        TCPResourceManager server= new TCPResourceManager();
+        TCPResourceManager server= new TCPResourceManager("");
         try
         {
             //comment this line and uncomment the next one to run in multiple threads.
@@ -61,20 +61,48 @@ public class TCPResourceManager extends ResourceManager {
                         }
                         case AddCars -> {
                             String location = cmd_args.remove(0);
+                            int count = Integer.parseInt(cmd_args.remove(0));
+                            int price = Integer.parseInt(cmd_args.remove(0));
+                            String success = String.valueOf(addCars(location, count, price));
+
+                            outToClient.println(success);
                         }
                         case AddRooms -> {
+                            String location = cmd_args.remove(0);
+                            int count = Integer.parseInt(cmd_args.remove(0));
+                            int price = Integer.parseInt(cmd_args.remove(0));
+                            String success = String.valueOf(addRooms(location, count, price));
+
+                            outToClient.println(success);
                         }
                         case AddCustomer -> {
+                            // never used
+                            // calls to this method intercepted by Middleware
                         }
                         case AddCustomerID -> {
+                            int cid = Integer.parseInt(cmd_args.remove(0));
+                            String success = String.valueOf(newCustomer(cid));
+                            outToClient.println(success);
                         }
                         case DeleteFlight -> {
+                            int flightNumber =Integer.parseInt(cmd_args.remove(0));
+                            String success = String.valueOf(deleteFlight(flightNumber));
+                            outToClient.println(success);
                         }
                         case DeleteCars -> {
+                            String location = cmd_args.remove(0);
+                            String success = String.valueOf(deleteCars(location));
+                            outToClient.println(success);
                         }
                         case DeleteRooms -> {
+                            String location = cmd_args.remove(0);
+                            String success = String.valueOf(deleteRooms(location));
+                            outToClient.println(success);
                         }
                         case DeleteCustomer -> {
+                            int cid = Integer.parseInt(cmd_args.remove(0));
+                            String success = String.valueOf(deleteCustomer(cid));
+                            outToClient.println(success);
                         }
                         case QueryFlight -> {
                         }
