@@ -43,15 +43,15 @@ public class TCPMiddleware {
 
 
         try {
-            Socket flight_socket = new Socket("tr-open-20", port);
+            Socket flight_socket = new Socket("tr-open-15", port);
             this.flight_output_stream = new ObjectOutputStream(flight_socket.getOutputStream());
             this.flight_input_stream = new BufferedReader(new InputStreamReader(flight_socket.getInputStream()));
 
-            Socket car_socket = new Socket("tr-open-19", port);
+            Socket car_socket = new Socket("tr-open-18", port);
             this.car_output_stream = new ObjectOutputStream(car_socket.getOutputStream());
             this.car_input_stream = new BufferedReader(new InputStreamReader(car_socket.getInputStream()));
 
-            Socket room_socket = new Socket("tr-open-18", port);
+            Socket room_socket = new Socket("tr-open-16", port);
             this.room_output_stream = new ObjectOutputStream(room_socket.getOutputStream());
             this.room_input_stream = new BufferedReader(new InputStreamReader(room_socket.getInputStream()));
 
@@ -82,9 +82,10 @@ public class TCPMiddleware {
 
     }
     public void execute(Vector<String> cmd_args, PrintWriter outToClient) throws IOException {
-        Command cmd = Command.fromString(cmd_args.get(0));
+        Command cmd = Command.fromString(cmd_args.remove(0));
         switch (cmd) {
             case Help, DeleteFlight, QueryFlight, AddFlight, QueryFlightPrice, ReserveFlight -> {
+
                 execute_redirection(this.flight_output_stream, this.flight_input_stream, outToClient, cmd_args);
                 break;
             }
@@ -99,20 +100,20 @@ public class TCPMiddleware {
             case AddCustomer -> {
                 int cid = Integer.parseInt(String.valueOf(Calendar.getInstance().get(Calendar.MILLISECOND)) +
                         String.valueOf(Math.round(Math.random() * 100 + 1)));
-                cmd_args.set(0, Command.AddCustomerID.name());
-                cmd_args.add("" + cid);
+                cmd_args.set(0,Command.AddCustomerID.name());
+                cmd_args.add(cid+"");
                 flight_output_stream.writeObject(cmd_args);
-                flight_input_stream.read();
+                flight_input_stream.readLine();
                 room_output_stream.writeObject(cmd_args);
-                room_input_stream.read();
+                room_input_stream.readLine();
                 execute_redirection(this.car_output_stream, this.car_input_stream, outToClient, cmd_args);
                 break;
             }
             case AddCustomerID, DeleteCustomer -> {
                 flight_output_stream.writeObject(cmd_args);
-                flight_input_stream.read();
+                flight_input_stream.readLine();
                 room_output_stream.writeObject(cmd_args);
-                room_input_stream.read();
+                room_input_stream.readLine();
                 execute_redirection(this.car_output_stream, this.car_input_stream, outToClient, cmd_args);
                 break;
             }
@@ -165,3 +166,4 @@ public class TCPMiddleware {
         }
     }
 }
+

@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.Socket;
 import java.rmi.RemoteException;
 import java.util.Vector;
+import java.util.*;
 
 public class TCPClient extends Client{
     private static String s_serverHost = "localhost";
@@ -78,6 +79,9 @@ public class TCPClient extends Client{
         }
 
          */
+for(String s: arguments) {
+			System.out.println(s);
+		}
         switch (cmd){
             case Help -> {
                 if (arguments.size() == 1) {
@@ -363,11 +367,13 @@ public class TCPClient extends Client{
             System.out.println("Failed to write to output_stream.");
         }
 
-        try {
+	 try {
             return input_stream.readLine(); // receive the server's result via the input stream from the server
+  
         } catch (IOException e) {
             System.out.println("Failed to receive response from server.");
         }
         return "false";
+
     }
 }
