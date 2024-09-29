@@ -62,26 +62,6 @@ public class TCPClient extends Client{
 
     @Override
     public void execute(Command cmd, Vector<String> arguments) throws RemoteException, NumberFormatException {
-        /*
-        arguments.insertElementAt( cmd.name(), 0);
-
-        try {
-            this.output_stream.writeObject(arguments);
-        } catch (IOException e) {
-            System.out.println("Failed to write to output_stream.");
-        }
-
-        try {
-            String res = input_stream.readLine(); // receive the server's result via the input stream from the server
-            System.out.println(res);
-        } catch (IOException e) {
-            System.out.println("Faield to receive response from server.");
-        }
-
-         */
-for(String s: arguments) {
-			System.out.println(s);
-		}
         switch (cmd){
             case Help -> {
                 if (arguments.size() == 1) {
@@ -192,7 +172,7 @@ for(String s: arguments) {
                 checkArgumentsCount(2, arguments.size());
 
                 System.out.println("Deleting all rooms at a particular location");
-                System.out.println("-Car Location: " + arguments.elementAt(1));
+                System.out.println("-Room Location: " + arguments.elementAt(1));
 
                 if (executeSubroutine(cmd, arguments).equals("true")) {
                     System.out.println("Rooms Deleted");
@@ -359,7 +339,6 @@ for(String s: arguments) {
     }
 
     public String executeSubroutine(Command cmd, Vector<String> arguments){
-        arguments.insertElementAt( cmd.name(), 0);
 
         try {
             this.output_stream.writeObject(arguments);
@@ -368,8 +347,16 @@ for(String s: arguments) {
         }
 
 	 try {
+         if (cmd!=Command.QueryCustomer)
             return input_stream.readLine(); // receive the server's result via the input stream from the server
-  
+         else {
+             String s = "";
+             String tmp;
+             while(!(tmp = input_stream.readLine()).equals("end")){
+                 s+=tmp+"\n";
+             }
+             return s;
+         }
         } catch (IOException e) {
             System.out.println("Failed to receive response from server.");
         }

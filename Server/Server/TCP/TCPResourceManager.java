@@ -40,8 +40,7 @@ public class TCPResourceManager extends ResourceManager {
                 ObjectInputStream inFromClient= new ObjectInputStream(socket.getInputStream());
 
                 PrintWriter outToClient = new PrintWriter(socket.getOutputStream(), true); //PrintWriter: Prints formatted representations of objects to a text-output stream
-                //socket.getOutputStream(): Returns an output stream for this socket.
-                while (true) //Reads a line of text. A line is considered to be terminated by any one of a line feed ('\n'),
+                while (true)
                 {
 
                     Vector<String> cmd_args = (Vector<String>) inFromClient.readObject();
@@ -136,7 +135,7 @@ public class TCPResourceManager extends ResourceManager {
                         case QueryCustomer -> {
                             int customerID =  Integer.parseInt(cmd_args.remove(0));
                             String bill = String.valueOf(queryCustomerInfo(customerID));
-
+                            bill+="end";
                             outToClient.println(bill);
                             break;
                         }

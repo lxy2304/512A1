@@ -12,6 +12,12 @@ public class TCPMiddleware {
 
     private static int port = 2324;
 
+    private String flight_host;
+
+    private String car_host;
+
+    private String room_host;
+
     ObjectOutputStream flight_output_stream;
 
     BufferedReader flight_input_stream;
@@ -25,7 +31,12 @@ public class TCPMiddleware {
     BufferedReader room_input_stream;
 
     public static void main(String[] args) {
-        TCPMiddleware server= new TCPMiddleware();
+
+        if (args.length != 3) {
+            System.out.println("Wrong number of inputs");
+            System.exit(1);
+        }
+        TCPMiddleware server= new TCPMiddleware(args[0], args[1], args[2]);
         try
         {
             //comment this line and uncomment the next one to run in multiple threads.
@@ -36,6 +47,12 @@ public class TCPMiddleware {
         { }
     }
 
+    public TCPMiddleware(String flight_host, String car_host, String room_host) {
+        this.flight_host = flight_host;
+        this.car_host = car_host;
+        this.room_host = room_host;
+    }
+
     public void runServer() throws IOException
     {
         ServerSocket serverSocket = new ServerSocket(port); // establish a server socket to receive messages over the network from clients
@@ -43,15 +60,15 @@ public class TCPMiddleware {
 
 
         try {
-            Socket flight_socket = new Socket("tr-open-15", port);
+            Socket flight_socket = new Socket(this.flight_host, port);
             this.flight_output_stream = new ObjectOutputStream(flight_socket.getOutputStream());
             this.flight_input_stream = new BufferedReader(new InputStreamReader(flight_socket.getInputStream()));
 
-            Socket car_socket = new Socket("tr-open-18", port);
+            Socket car_socket = new Socket(this.car_host, port);
             this.car_output_stream = new ObjectOutputStream(car_socket.getOutputStream());
             this.car_input_stream = new BufferedReader(new InputStreamReader(car_socket.getInputStream()));
 
-            Socket room_socket = new Socket("tr-open-16", port);
+            Socket room_socket = new Socket(this.room_host, port);
             this.room_output_stream = new ObjectOutputStream(room_socket.getOutputStream());
             this.room_input_stream = new BufferedReader(new InputStreamReader(room_socket.getInputStream()));
 
@@ -66,7 +83,9 @@ public class TCPMiddleware {
             {
                 ObjectInputStream client_input_stream = new ObjectInputStream(socket.getInputStream());
                 PrintWriter outToClient = new PrintWriter(socket.getOutputStream(), true);
-                execute((Vector<String>) client_input_stream.readObject(), outToClient);
+                while (true) {
+                    execute((Vector<String>) client_input_stream.readObject(), outToClient);
+                }
             }
             catch (IOException e) {} catch (ClassNotFoundException e) {
                 throw new RuntimeException(e);
@@ -82,7 +101,7 @@ public class TCPMiddleware {
 
     }
     public void execute(Vector<String> cmd_args, PrintWriter outToClient) throws IOException {
-        Command cmd = Command.fromString(cmd_args.remove(0));
+        Command cmd = Command.fromString(cmd_args.get(0));
         switch (cmd) {
             case Help, DeleteFlight, QueryFlight, AddFlight, QueryFlightPrice, ReserveFlight -> {
 
@@ -103,29 +122,54 @@ public class TCPMiddleware {
                 cmd_args.set(0,Command.AddCustomerID.name());
                 cmd_args.add(cid+"");
                 flight_output_stream.writeObject(cmd_args);
-                flight_input_stream.readLine();
+                String s1 = flight_input_stream.readLine();
                 room_output_stream.writeObject(cmd_args);
-                room_input_stream.readLine();
-                execute_redirection(this.car_output_stream, this.car_input_stream, outToClient, cmd_args);
+                String s2 = room_input_stream.readLine();
+                car_output_stream.writeObject(cmd_args);
+                String s3 = car_input_stream.readLine();
+
+                if (s1.equals(s2) && s2.equals(s3) && s3.equals("true")) {
+                    outToClient.println(cid);
+                } else {
+                    System.out.println("false");
+                    outToClient.println("Failed to add customer.");
+                }
                 break;
             }
             case AddCustomerID, DeleteCustomer -> {
                 flight_output_stream.writeObject(cmd_args);
-                flight_input_stream.readLine();
+                String s1 = flight_input_stream.readLine();
                 room_output_stream.writeObject(cmd_args);
-                room_input_stream.readLine();
-                execute_redirection(this.car_output_stream, this.car_input_stream, outToClient, cmd_args);
+                String s2 = room_input_stream.readLine();
+                car_output_stream.writeObject(cmd_args);
+                String s3 = car_input_stream.readLine();
+                if (s1.equals(s2) && s2.equals(s3) && s3.equals("true")) {
+                    outToClient.println("true");
+                } else {
+                    System.out.println("execution failed");
+                    outToClient.println("false");
+                }
                 break;
             }
             case QueryCustomer -> {
-                String res = "";
+                outToClient.println("Bill for customer " + cmd_args.get(1));
+                String tmp;
                 flight_output_stream.writeObject(cmd_args);
-                res += flight_input_stream.readLine();
+                flight_input_stream.readLine();
+                while (!(tmp = flight_input_stream.readLine()).equals("end")){
+                    outToClient.println(tmp);
+                }
                 room_output_stream.writeObject(cmd_args);
-                res += room_input_stream.readLine();
+                room_input_stream.readLine();
+                while (!(tmp = room_input_stream.readLine()).equals("end")){
+                    outToClient.println(tmp);
+                }
                 car_output_stream.writeObject(cmd_args);
-                res += car_input_stream.readLine();
-                outToClient.println(res);
+                car_input_stream.readLine();
+                while (!(tmp = car_input_stream.readLine()).equals("end")){
+                    outToClient.println(tmp);
+                }
+                outToClient.println("end");
                 break;
             }
             case Bundle -> {

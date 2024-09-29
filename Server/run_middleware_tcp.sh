@@ -1,1 +1,1 @@
-java -cp ../Client/Command.jar:. Server.TCP.TCPMiddleware
+java -cp ../Client/Command.jar:. Server.TCP.TCPMiddleware $1 $2 $3
