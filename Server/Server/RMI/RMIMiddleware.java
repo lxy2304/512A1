@@ -28,9 +28,9 @@ public class RMIMiddleware implements IResourceManager {
             Registry registry = LocateRegistry.getRegistry(host1, 2324);
             flight = (IResourceManager) registry.lookup(s_rmiPrefix + "Flights" );
             registry = LocateRegistry.getRegistry(host2, 2324);
-            room = (IResourceManager) registry.lookup(s_rmiPrefix + "Rooms" );
+            room = (IResourceManager) registry.lookup(s_rmiPrefix + "Cars" );
             registry = LocateRegistry.getRegistry(host3, 2324);
-            car = (IResourceManager) registry.lookup(s_rmiPrefix + "Cars" );
+            car = (IResourceManager) registry.lookup(s_rmiPrefix + "Rooms" );
         } catch (Exception e) {
             System.out.print("Error connecting to registries.");
         }

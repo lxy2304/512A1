@@ -1,7 +1,6 @@
 #!/bin/bash
 
-#TODO: SPECIFY THE HOSTNAMES OF 4 CS MACHINES (tr-open-01, tr-open-02, etc...)
-MACHINES=(tr-open-20, tr-open-21, tr-open-22, tr-open-23)
+MACHINES=(tr-open-18 tr-open-19 tr-open-15 tr-open-28)
 
 tmux new-session \; \
 	split-window -h \; \
