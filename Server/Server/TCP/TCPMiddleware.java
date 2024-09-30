@@ -43,11 +43,21 @@ public class TCPMiddleware {
         try
         {
             //comment this line and uncomment the next one to run in multiple threads.
-            server.runServer();
-            //server.runServerThread();
+//            server.runServer();
+            server.runServerThread();
         }
         catch (IOException e)
         { }
+    }
+
+    private void runServerThread() throws IOException{
+        ServerSocket serverSocket = new ServerSocket(port); // establish a server socket to receive messages over the network from clients
+        System.out.println("Server ready...");
+        while (true)
+        {
+            Socket socket=serverSocket.accept();
+            new TCPMiddlewareThread(socket, this.flight_host, this.car_host, this.room_host).start();
+        }
     }
 
     public TCPMiddleware(String flight_host, String car_host, String room_host) {
@@ -80,7 +90,6 @@ public class TCPMiddleware {
         }
         while (true) // runs forever
         {
-            String message=null;
             Socket socket=serverSocket.accept(); // listen for a connection to be made to this socket and accept it
             try
             {
