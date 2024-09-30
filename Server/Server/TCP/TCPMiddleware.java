@@ -1,6 +1,9 @@
 package Server.TCP;
 
 import Client.Command;
+import Server.Common.Car;
+import Server.Common.Flight;
+import Server.Common.Room;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -104,7 +107,6 @@ public class TCPMiddleware {
         Command cmd = Command.fromString(cmd_args.get(0));
         switch (cmd) {
             case Help, DeleteFlight, QueryFlight, AddFlight, QueryFlightPrice, ReserveFlight -> {
-
                 execute_redirection(this.flight_output_stream, this.flight_input_stream, outToClient, cmd_args);
                 break;
             }
@@ -131,12 +133,51 @@ public class TCPMiddleware {
                 if (s1.equals(s2) && s2.equals(s3) && s3.equals("true")) {
                     outToClient.println(cid);
                 } else {
-                    System.out.println("false");
-                    outToClient.println("Failed to add customer.");
+                    System.out.println("Failed to add customer.");
+                    outToClient.println("false");
                 }
                 break;
             }
-            case AddCustomerID, DeleteCustomer -> {
+            case AddCustomerID -> {
+                flight_output_stream.writeObject(cmd_args);
+                String s1 = flight_input_stream.readLine();
+                if (s1.equals("true")) {
+                    room_output_stream.writeObject(cmd_args);
+                    String s2 = room_input_stream.readLine();
+                    if (s2.equals("true")) {
+                        car_output_stream.writeObject(cmd_args);
+                        String s3 = car_input_stream.readLine();
+                        if (s3.equals("true")) {
+                            outToClient.println("true");
+                        } else {
+                            //revert flight and room customer creation
+                            Vector<String> v = new Vector<>();
+                            v.add(Command.DeleteCustomer.name());
+                            v.add(cmd_args.get(1));
+                            flight_output_stream.writeObject(v);
+                            flight_input_stream.readLine();
+                            room_output_stream.writeObject(v);
+                            room_input_stream.readLine();
+                            System.out.println("Add new customer to Car server failed");
+                            outToClient.println("false");
+                        }
+                    } else {
+                        //revert flight customer creation
+                        Vector<String> v = new Vector<>();
+                        v.add(Command.DeleteCustomer.name());
+                        v.add(cmd_args.get(1));
+                        flight_output_stream.writeObject(v);
+                        flight_input_stream.readLine();
+                        System.out.println("Add new customer to Room server failed");
+                        outToClient.println("false");
+                    }
+                } else {
+                    System.out.println("Add new customer to Flight server failed");
+                    outToClient.println("false");
+                }
+                break;
+            }
+            case DeleteCustomer -> {
                 flight_output_stream.writeObject(cmd_args);
                 String s1 = flight_input_stream.readLine();
                 room_output_stream.writeObject(cmd_args);
@@ -173,37 +214,74 @@ public class TCPMiddleware {
                 break;
             }
             case Bundle -> {
-                Vector<String> c1 = new Vector<>(cmd_args);
-                Vector<String> c2 = new Vector<>();
-                Vector<String> c3 = new Vector<>();
+                Boolean room = Boolean.parseBoolean(cmd_args.get(cmd_args.size()-1));
+                Boolean car = Boolean.parseBoolean(cmd_args.get(cmd_args.size()-2));
 
-                String res = "";
-
-                c1.set(c1.size()-1, "false");
-                c1.set(c1.size()-2, "false");
-                flight_output_stream.writeObject(c1);
-                res += flight_input_stream.readLine();
-
-                int size = cmd_args.size();
-                if (cmd_args.get(size-1).equals("true")) {
-                    c2.add(Command.ReserveRoom.name());
-                    c2.add(cmd_args.get(1));
-                    c2.add(cmd_args.get(size-3));
-                    room_output_stream.writeObject(c2);
-                    res += room_input_stream.readLine();
+                if (car) {
+                    Vector<String> reserve_car = new Vector<>();
+                    reserve_car.add(Command.ReserveCar.name());
+                    reserve_car.add(cmd_args.get(1));
+                    reserve_car.add(cmd_args.get(cmd_args.size()-3));
+                    car_output_stream.writeObject(reserve_car);
+                    Boolean car_res = Boolean.parseBoolean(car_input_stream.readLine());
+                    if (!car_res) {
+                        outToClient.println("false");
+                        break;
+                    }
                 }
 
-                if (cmd_args.get(size-2).equals("true")) {
-                    c3.add(Command.ReserveCar.name());
-                    c3.add(cmd_args.get(1));
-                    c3.add(cmd_args.get(size-3));
-                    car_output_stream.writeObject(c3);
-                    res += car_input_stream.readLine();
+                if (room) {
+                    Vector<String> reserve_room = new Vector<>();
+                    reserve_room.add(Command.ReserveRoom.name());
+                    reserve_room.add(cmd_args.get(1));
+                    reserve_room.add(cmd_args.get(cmd_args.size()-3));
+                    room_output_stream.writeObject(reserve_room);
+                    Boolean room_res = Boolean.parseBoolean(room_input_stream.readLine());
+                    if (!room_res) {
+                        if (car) {
+                            // if room reservation fails and car is already reserved, unreserve car
+                            Vector<String> cancelCar = new Vector<>();
+                            cancelCar.add("unReserveItem");
+                            cancelCar.add(cmd_args.get(1));
+                            cancelCar.add(Car.getKey(cmd_args.get(cmd_args.size()-3)));
+                            cancelCar.add(cmd_args.get(cmd_args.size()-3));
+                            car_output_stream.writeObject(cancelCar);
+
+                        }
+                        outToClient.println("false");
+                        break;
+                    }
                 }
 
-                outToClient.println(res);
-                break;
+                cmd_args.set(cmd_args.size()-1, "false");
+                cmd_args.set(cmd_args.size()-2, "false");
+                flight_output_stream.writeObject(cmd_args);
+                Boolean flight_res = Boolean.parseBoolean(flight_input_stream.readLine());
+                if (!flight_res) {
+                    if (car) {
+                        // if flight reservation fails and car is already reserved, unreserve car
+                        Vector<String> cancelCar = new Vector<>();
+                        cancelCar.add("unReserveItem");
+                        cancelCar.add(cmd_args.get(1));
+                        cancelCar.add(Car.getKey(cmd_args.get(cmd_args.size()-3)));
+                        cancelCar.add(cmd_args.get(cmd_args.size()-3));
+                        car_output_stream.writeObject(cancelCar);
+                    }
+                    if (room) {
+                        // if flight reservation fails and room is already reserved, unreserve room
+                        Vector<String> cancelRoom = new Vector<>();
+                        cancelRoom.add("unReserveItem");
+                        cancelRoom.add(cmd_args.get(1));
+                        cancelRoom.add(Room.getKey(cmd_args.get(cmd_args.size()-3)));
+                        cancelRoom.add(cmd_args.get(cmd_args.size()-3));
+                        room_output_stream.writeObject(cancelRoom);
+                    }
+                    outToClient.println("false");
+                    break;
+                }
+                outToClient.println("true");
             }
+
             case Quit -> {
                 break;
             }

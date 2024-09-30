@@ -62,6 +62,23 @@ public class Customer extends RMItem
 		return s;
 	}
 
+	public void unReserve(String key)
+	{
+		ReservedItem reservedItem = getReservedItem(key);
+		if (reservedItem == null)
+		{
+			return;
+		}
+		else if (reservedItem.getCount() == 1){
+			m_reservations.remove(reservedItem.getKey());
+		} else
+		{
+			reservedItem.setCount(reservedItem.getCount() - 1);
+			m_reservations.put(reservedItem.getKey(), reservedItem);
+		}
+	}
+
+
 	public String toString()
 	{
 		String ret = "--- BEGIN CUSTOMER key='";

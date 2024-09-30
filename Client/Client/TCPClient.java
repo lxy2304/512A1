@@ -61,7 +61,7 @@ public class TCPClient extends Client{
     }
 
     @Override
-    public void execute(Command cmd, Vector<String> arguments) throws RemoteException, NumberFormatException {
+    public void execute(Command cmd, Vector<String> arguments) throws NumberFormatException {
         switch (cmd){
             case Help -> {
                 if (arguments.size() == 1) {

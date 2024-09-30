@@ -1,5 +1,7 @@
 package Server.RMI;
 
+import Server.Common.Car;
+import Server.Common.Room;
 import Server.Interface.IResourceManager;
 
 import java.rmi.registry.LocateRegistry;
@@ -152,7 +154,20 @@ public class RMIMiddleware implements IResourceManager {
 
     @Override
     public String queryCustomerInfo(int customerID) throws RemoteException {
-        return this.car.queryCustomerInfo(customerID)+this.room.queryCustomerInfo(customerID)+this.flight.queryCustomerInfo(customerID);
+        String roomInfo = this.room.queryCustomerInfo(customerID);
+        String flightInfo = this.flight.queryCustomerInfo(customerID);
+        String carInfo = this.car.queryCustomerInfo(customerID);
+        String res = "Bill for customer " + customerID + "\n";
+        if (!flightInfo.equals("")) {
+            res+=flightInfo.substring(flightInfo.indexOf("\n")+1);
+        }
+        if (!carInfo.equals("")) {
+            res+=carInfo.substring(carInfo.indexOf("\n")+1);
+        }
+        if (!roomInfo.equals("")) {
+            res+=roomInfo.substring(roomInfo.indexOf("\n")+1);
+        }
+        return res;
     }
 
     @Override
@@ -187,9 +202,33 @@ public class RMIMiddleware implements IResourceManager {
 
     @Override
     public boolean bundle(int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException {
-        return this.room.bundle(customerID, new Vector<String>(), location, false, room) &&
-                this.car.bundle(customerID, new Vector<String>(), location, car, false) &&
-                this.flight.bundle(customerID, flightNumbers, location, false, false);
+        boolean op1 = this.room.bundle(customerID, new Vector<String>(), location, false, room);
+        if (!op1) return false;
+
+        boolean op2 = this.car.bundle(customerID, new Vector<String>(), location, car, false);
+        if (!op2) {
+            // un reserve the room
+            this.room.unReserveItem(customerID, Room.getKey(location), location);
+            // return false
+            return false;
+        }
+
+        boolean op3 = this.flight.bundle(customerID, flightNumbers, location, false, false);
+        if (!op3){
+            // un reserve the car
+            this.car.unReserveItem(customerID, Car.getKey(location), location);
+            // un reserve the room
+            this.room.unReserveItem(customerID, Room.getKey(location), location);
+            // return false
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean unReserveItem(int customerID, String key, String location) throws RemoteException {
+        return false;
     }
 
     @Override

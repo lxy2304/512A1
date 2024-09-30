@@ -293,6 +293,36 @@ public class ResourceManager implements IResourceManager
 			return customer.getBill();
 		}
 	}
+	// Unreserve an item
+	public boolean unReserveItem(int customerID, String key, String location)
+	{
+		Trace.info("RM::unReserveItem(customer=" + customerID + ", " + key + ", " + location + ") called" );
+		// Read customer object if it exists (and read lock it)
+		Customer customer = (Customer)readData(Customer.getKey(customerID));
+
+		// Check if the item is available
+		ReservableItem item = (ReservableItem)readData(key);
+		if (item == null)
+		{
+			Trace.warn("RM::unReserveItem(" + customerID + ", " + key + ", " + location + ") failed--item doesn't exist");
+			return false;
+		}
+		else
+		{
+
+			customer.unReserve(key);
+			writeData(customer.getKey(), customer);
+
+			// Increase the number of available items in the storage
+			item.setCount(item.getCount() + 1);
+			item.setReserved(item.getReserved() - 1);
+
+			writeData(item.getKey(), item);
+
+			Trace.info("RM::unReserveItem(" + customerID + ", " + key + ", " + location + ") succeeded");
+			return true;
+		}
+	}
 
 	public int newCustomer() throws RemoteException
 	{
@@ -376,15 +406,31 @@ public class ResourceManager implements IResourceManager
 	// Reserve bundle 
 	public boolean bundle(int customerId, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException
 	{
-		for (String s : flightNumbers)
-			if (!reserveFlight(customerId, Integer.parseInt(s))) return false;
-
+		for (int i=0; i<flightNumbers.size(); i++){
+			// if a flight reservation fails roll back all reservation made up until that point
+			if (!reserveFlight(customerId, Integer.parseInt(flightNumbers.get(i)))){
+				for (int j=i-1; j>=0; j--)
+					unReserveItem(customerId, Flight.getKey(Integer.parseInt(flightNumbers.get(j))), flightNumbers.get(j));
+				return false;
+			}
+		}
 
 		if (car) {
-			if (!reserveCar(customerId, location)) return false;
+			if (!reserveCar(customerId, location)) {
+				// Rollback flights if car reservation fails
+				for (String s : flightNumbers) unReserveItem(customerId, Flight.getKey(Integer.parseInt(s)), s);
+				return false;
+			}
 		}
+
 		if (room){
-			if (!reserveRoom(customerId, location)) return false;
+			if (!reserveRoom(customerId, location)) {
+				// Rollback flights if car reservation fails
+				for (String s : flightNumbers) unReserveItem(customerId, Flight.getKey(Integer.parseInt(s)), s);
+				// Rollback car rental if room reservation fails
+				unReserveItem(customerId, Car.getKey(location), location);
+				return false;
+			}
 		}
 
 		return true;

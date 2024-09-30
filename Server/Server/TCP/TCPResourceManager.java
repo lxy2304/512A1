@@ -45,6 +45,13 @@ public class TCPResourceManager extends ResourceManager {
 
                     Vector<String> cmd_args = (Vector<String>) inFromClient.readObject();
                     String cmd = cmd_args.remove(0);
+                    if (cmd.equals("unReserveItem")){
+                        int cid = Integer.parseInt(cmd_args.remove(0));
+                        String key = cmd_args.remove(0);
+                        String location = cmd_args.remove(0);
+                        unReserveItem(cid, key, location);
+                        continue;
+                    }
                     switch(Command.fromString(cmd)) {
                         case Help -> {
                         }
