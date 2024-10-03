@@ -53,10 +53,29 @@ public class TCPMiddleware {
     private void runServerThread() throws IOException{
         ServerSocket serverSocket = new ServerSocket(port); // establish a server socket to receive messages over the network from clients
         System.out.println("Server ready...");
+        Socket flight_socket = null;
+        Socket car_socket = null;
+        Socket room_socket = null;
+        try {
+            flight_socket = new Socket(this.flight_host, port);
+            this.flight_output_stream = new ObjectOutputStream(flight_socket.getOutputStream());
+            this.flight_input_stream = new BufferedReader(new InputStreamReader(flight_socket.getInputStream()));
+
+            car_socket = new Socket(this.car_host, port);
+            this.car_output_stream = new ObjectOutputStream(car_socket.getOutputStream());
+            this.car_input_stream = new BufferedReader(new InputStreamReader(car_socket.getInputStream()));
+
+            room_socket = new Socket(this.room_host, port);
+            this.room_output_stream = new ObjectOutputStream(room_socket.getOutputStream());
+            this.room_input_stream = new BufferedReader(new InputStreamReader(room_socket.getInputStream()));
+
+        } catch (IOException e){
+            System.out.println("Socket creation failed due to IO exception");
+        }
         while (true)
         {
             Socket socket=serverSocket.accept();
-            new TCPMiddlewareThread(socket, this.flight_host, this.car_host, this.room_host).start();
+            new TCPMiddlewareThread(socket, this.flight_output_stream, this.flight_input_stream, this.car_output_stream, this.car_input_stream, this.room_output_stream, this.room_input_stream).start();
         }
     }
 

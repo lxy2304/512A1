@@ -14,20 +14,6 @@ public class TCPMiddlewareThread extends Thread {
 
     Socket socket;
 
-    String room_host;
-
-    String flight_host;
-
-    String car_host;
-
-    TCPMiddlewareThread (Socket socket, String flight_host, String car_host, String room_host)
-    {
-        this.socket = socket;
-        this.flight_host = flight_host;
-        this.car_host = car_host;
-        this.room_host = room_host;
-    }
-
     ObjectOutputStream flight_output_stream;
 
     BufferedReader flight_input_stream;
@@ -40,31 +26,30 @@ public class TCPMiddlewareThread extends Thread {
 
     BufferedReader room_input_stream;
 
-    static int port = 2324;
+    ObjectInputStream client_input_stream;
+
+    PrintWriter outToClient;
+
+    public TCPMiddlewareThread(Socket socket, ObjectOutputStream flightOutputStream, BufferedReader flightInputStream, ObjectOutputStream carOutputStream, BufferedReader carInputStream, ObjectOutputStream roomOutputStream, BufferedReader roomInputStream) {
+        this.socket = socket;
+        this.flight_output_stream = flightOutputStream;
+        this.flight_input_stream = flightInputStream;
+        this.car_output_stream = carOutputStream;
+        this.car_input_stream = carInputStream;
+        this.room_output_stream = roomOutputStream;
+        this.room_input_stream = roomInputStream;
+
+    }
+
     public void run()
     {
-        try {
-            Socket flight_socket = new Socket(this.flight_host, port);
-            this.flight_output_stream = new ObjectOutputStream(flight_socket.getOutputStream());
-            this.flight_input_stream = new BufferedReader(new InputStreamReader(flight_socket.getInputStream()));
-
-            Socket car_socket = new Socket(this.car_host, port);
-            this.car_output_stream = new ObjectOutputStream(car_socket.getOutputStream());
-            this.car_input_stream = new BufferedReader(new InputStreamReader(car_socket.getInputStream()));
-
-            Socket room_socket = new Socket(this.room_host, port);
-            this.room_output_stream = new ObjectOutputStream(room_socket.getOutputStream());
-            this.room_input_stream = new BufferedReader(new InputStreamReader(room_socket.getInputStream()));
-
-        } catch (IOException e){
-            System.out.println("Socket creation failed due to IO exception");
-        }
         try
         {
-            ObjectInputStream client_input_stream = new ObjectInputStream(socket.getInputStream());
-            PrintWriter outToClient = new PrintWriter(socket.getOutputStream(), true);
+            client_input_stream = new ObjectInputStream(socket.getInputStream());
+            outToClient = new PrintWriter(socket.getOutputStream(),true);
             while (true) {
-                execute((Vector<String>) client_input_stream.readObject(), outToClient);
+                Vector<String> obj = (Vector<String>) client_input_stream.readObject();
+                execute(obj, outToClient);
             }
         }
         catch (IOException e) {} catch (ClassNotFoundException e) {
